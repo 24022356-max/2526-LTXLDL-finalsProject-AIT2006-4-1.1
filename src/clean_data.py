@@ -56,8 +56,8 @@ def process_month(file_path):
     # Add stats to our global list
     all_qa_stats.append(qa_stats)
 
-    # Return ONLY valid rows and DROP the QA columns to save space
-    valid_df = df[df['is_valid_trip']].copy()
+    # Return ONLY valid rows and drop duplicates
+    valid_df = df[df['is_valid_trip'] & ~df.duplicated()].copy()
     
     # Drop the temporary columns we created
     cols_to_drop = [c for c in valid_df.columns if c.startswith('qa_')] + ['is_valid_trip']
@@ -126,7 +126,7 @@ def apply_qa_rules(df, month_str):
         n_fail = (~df[col]).sum()
         stats[f'{col}_fail_pct'] = round((n_fail / n_total) * 100, 2)
     
-    n_invalid = (~df['is_valid_trip']).sum()
+    n_invalid = (~(df['is_valid_trip'] & ~df.duplicated())).sum()
     stats['total_dropped_count'] = n_invalid
     stats['total_dropped_pct'] = round((n_invalid / n_total) * 100, 2)
     
