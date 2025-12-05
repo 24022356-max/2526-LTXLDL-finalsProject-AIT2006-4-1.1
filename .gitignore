@@ -1,4 +1,8 @@
-# Ignore the huge data files
+raw/*
+processed/*
+
+!raw/.gitkeep
+!processed/.gitkeep
+
 *.parquet
-raw/
-processed/
+*.csv
