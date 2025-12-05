@@ -80,8 +80,8 @@ def apply_qa_rules(df, month_str):
     # Distance: > 0 miles OR 0 miles with > $0 fare
     df['qa_distance'] = ((df['trip_distance'] > 0) | ((df['trip_distance'] == 0) & (df['total_amount'] > 0)))
     
-    # Speed: < 60 mph
-    df['qa_speed'] = (df['avg_speed'] >= 0) & (df['avg_speed'] <= 60) 
+    # Speed: < 70 mph
+    df['qa_speed'] = (df['avg_speed'] >= 0) & (df['avg_speed'] <= 70) 
 
     # Payment Type: 0 to 6
     df['qa_payment_type'] = (df['payment_type'] >= 0) & (df['payment_type'] <= 6)
@@ -111,8 +111,8 @@ def apply_qa_rules(df, month_str):
     # VendorID: 1, 2, 6, 7
     df['qa_vendorID'] = df['VendorID'].isin([1, 2, 6, 7]) 
 
-    # Passenger Count: 1 to 8
-    df['qa_passenger_count'] = (df['passenger_count'] > 0) & (df['passenger_count'] < 9)
+    # Passenger Count: 0 to 9
+    df['qa_passenger_count'] = (df['passenger_count'] >= 0) & (df['passenger_count'] <= 9)
 
     # --- VALIDATION ---
     qa_cols = [col for col in df.columns if col.startswith('qa_')]

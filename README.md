@@ -35,13 +35,13 @@ This project analyzes 12 months of Yellow Taxi trip records to identify seasonal
 
 We processed ~80 million rows. Data was filtered based on the following rules:
 - **Dates:** Retained trips only within the year 2019.
-- **Passengers:** Kept trips with 1-8 passengers.
+- **Passengers:** Kept trips with 0-9 passengers (0 allowed for delivery/app errors).
 - **Fares:** Removed negative fares and outliers > $1000.
 - **Distance/Duration:** Removed negative distances and trips > 10 hours.
-- **Speed:** Removed trips with impossible speeds (> 60 mph).
+- **Speed:** Removed trips with impossible speeds (> 70 mph).
 - **Missing Values:** Filled NaNs with 0 for monetary columns.
 
-**QA Result:** Approximately 3.5% of raw data was dropped as invalid.
+**QA Result:** Approximately 2% of raw data was dropped as invalid on average.
 
 ## Findings
 
