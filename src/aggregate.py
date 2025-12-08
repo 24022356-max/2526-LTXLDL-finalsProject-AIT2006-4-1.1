@@ -12,8 +12,8 @@ import os
 # ------------------------------
 # CONFIG
 # ------------------------------
-INPUT_FOLDER = "../processed"     # where clean_*.parquet are stored
-OUTPUT_FOLDER = "../processed"    # KPI CSVs will also be saved here
+INPUT_FOLDER = "processed"     # where clean_*.parquet are stored
+OUTPUT_FOLDER = "processed"    # KPI CSVs will also be saved here
 YEAR = 2019
 
 
