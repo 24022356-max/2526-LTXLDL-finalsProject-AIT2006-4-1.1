@@ -5,12 +5,9 @@ import os
 import gc
 from tqdm import tqdm
 
-
-print("hello test")
-
-input_folder = '../raw'
-output_folder = '../processed'
-report_folder = '../reports'
+input_folder = './raw'
+output_folder = './processed'
+report_folder = './reports'
 
 # List to collect QA results for every month
 all_qa_stats = []
