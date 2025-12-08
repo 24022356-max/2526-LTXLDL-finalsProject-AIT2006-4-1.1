@@ -143,7 +143,6 @@ for file in tqdm(raw_files, desc="Processing Files"):
         
         if cleaned_df is not None and not cleaned_df.empty:
             output_name = os.path.basename(file)
-            #Save Parquet
             save_path = os.path.join(output_folder, f"clean_{output_name}")
             cleaned_df.to_parquet(save_path, index=False)
         else:

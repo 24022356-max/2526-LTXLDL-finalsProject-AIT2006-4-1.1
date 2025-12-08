@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# 2526-LTXLDL-finalsProject-AIT2006-4-1.1
-=======
 # 2526-LTXLDL-finalsProject-AIT2006-4-1.1 - NYC Taxi Data Analysis (2019)
 
 This is the finals project of group AIT2006-4-1.1.
@@ -50,4 +47,3 @@ We processed ~80 million rows. Data was filtered based on the following rules:
 
 - **Seasonality:** Revenue peaked in **Decemeber** and dipped in **December**.
 - **Outliers:** Found valid trips costing over $500, verified as negotiated fares.
->>>>>>> acd3f917543898987729a7d5157370c685b57864
