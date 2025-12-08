@@ -5,6 +5,9 @@ import os
 import gc
 from tqdm import tqdm
 
+
+print("hello test")
+
 input_folder = '../raw'
 output_folder = '../processed'
 report_folder = '../reports'
@@ -141,8 +144,15 @@ for file in tqdm(raw_files, desc="Processing Files"):
         
         if cleaned_df is not None and not cleaned_df.empty:
             output_name = os.path.basename(file)
+
+
+            #Save Parquet
             save_path = os.path.join(output_folder, f"clean_{output_name}")
             cleaned_df.to_parquet(save_path, index=False)
+
+            #Save CSV
+            csv_path = os.path.join(output_folder , f"clean_{output_name.replace('parquet' , 'csv')}")
+            cleaned_df.to_csv(csv_path , index = False)
         else:
             print(f"\n{file}: No data")
 
