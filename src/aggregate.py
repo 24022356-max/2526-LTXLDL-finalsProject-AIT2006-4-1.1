@@ -51,6 +51,10 @@ kpi_daily = df.groupby('date').agg(
 # Daily index (100 = first day)
 kpi_daily['trips_index100'] = 100 * kpi_daily['trips'] / kpi_daily['trips'].iloc[0]
 
+# Yearly total
+kpi_daily['pct_of_year'] = 100 * kpi_daily['trips'] / kpi_daily['trips'].sum()
+
+
 daily_path = os.path.join(OUTPUT_FOLDER, f"kpi_daily_{YEAR}.csv")
 kpi_daily.to_csv(daily_path, index=False)
 
