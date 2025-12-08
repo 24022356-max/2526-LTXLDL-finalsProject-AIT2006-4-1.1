@@ -5,9 +5,11 @@ import os
 import gc
 from tqdm import tqdm
 
-input_folder = './raw'
-output_folder = './processed'
-report_folder = './reports'
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+input_folder = os.path.join(script_dir, '..', 'raw')
+output_folder = os.path.join(script_dir, '..', 'processed')
+report_folder = os.path.join(script_dir, '..', 'reports')
 
 # List to collect QA results for every month
 all_qa_stats = []
