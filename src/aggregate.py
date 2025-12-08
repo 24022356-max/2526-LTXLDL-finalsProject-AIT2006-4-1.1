@@ -4,10 +4,6 @@ import numpy as np
 import glob
 import os
 import gc
-import pandas as pd
-import numpy as np
-import glob
-import os
 
 # ------------------------------
 # CONFIG
@@ -49,6 +45,10 @@ for f in clean_files:
     duration_p95=('trip_duration', lambda x: x.quantile(0.95)), 
     speed_p50=('avg_speed', 'median'))
     )
+
+    #======================================================
+    # WEEKLY KPI
+    #======================================================
 
     weekly_chunk.append(df.groupby('week').agg(
         trips=('VendorID', 'count'),
