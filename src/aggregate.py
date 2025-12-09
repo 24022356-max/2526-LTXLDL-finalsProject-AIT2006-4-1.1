@@ -214,12 +214,12 @@ kpi_monthly_dropoff["pct_of_year"] = 100 * kpi_monthly_dropoff["trips"] / kpi_mo
 # =====================================================
 #   SAVE OUTPUTS
 # =====================================================
-daily_pu_path    = os.path.join(OUTPUT_FOLDER, f"kpi_daily_pickup{YEAR}.csv")
-daily_do_path    = os.path.join(OUTPUT_FOLDER, f"kpi_daily_dropoff{YEAR}.csv")
+daily_pu_path = os.path.join(OUTPUT_FOLDER, f"kpi_daily_pickup{YEAR}.csv")
+daily_do_path = os.path.join(OUTPUT_FOLDER, f"kpi_daily_dropoff{YEAR}.csv")
 weekly_pu_path = os.path.join(OUTPUT_FOLDER, f"kpi_weekly_pickup_{YEAR}.csv")
 weekly_do_path = os.path.join(OUTPUT_FOLDER, f"kpi_weekly_dropoff_{YEAR}.csv")
-monthly_pu_path  = os.path.join(OUTPUT_FOLDER, f"kpi_monthly_pickup{YEAR}.csv")
-monthly_do_path  = os.path.join(OUTPUT_FOLDER, f"kpi_monthly_dropoff{YEAR}.csv")
+monthly_pu_path = os.path.join(OUTPUT_FOLDER, f"kpi_monthly_pickup{YEAR}.csv")
+monthly_do_path = os.path.join(OUTPUT_FOLDER, f"kpi_monthly_dropoff{YEAR}.csv")
 
 kpi_daily_pickup.to_csv(daily_path, index=False)
 kpi_daily_dropoff.to_csv(daily_path, index=False)
