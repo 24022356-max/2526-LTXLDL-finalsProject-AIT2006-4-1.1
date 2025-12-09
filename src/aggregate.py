@@ -35,16 +35,27 @@ for f in clean_files:
     df['month'] = df['tpep_pickup_datetime'].dt.to_period('M')
     df['week'] = df['tpep_pickup_datetime'].dt.isocalendar().week
     df['dow'] = df['tpep_pickup_datetime'].dt.dayofweek   # Monday=0
+    
 
     # =====================================================
     #   DAILY KPI
     # =====================================================
     daily_chunk.append(df.groupby('date').agg(
-    trips=('VendorID', 'count'),
-    duration_p50=('trip_duration', 'median'),
-    duration_p95=('trip_duration', lambda x: x.quantile(0.95)), 
-    speed_p50=('avg_speed', 'median'))
-    )
+        trips=('VendorID', 'count'),
+        duration_p50=('trip_duration', 'median'),
+        duration_p95=('trip_duration', lambda x: x.quantile(0.95)), 
+        speed_p50=('avg_speed', 'median'),
+
+        # PASSENGER
+        passenger_p50 = ( 'passenger_count' , 'median'),
+        passenger_mean = ( 'passenger_count' , 'mean'),
+        passenger_sum=('passenger_count', 'sum'),
+        
+        # DISTANCE 
+        distance_sum=('trip_distance', 'sum'),
+        distance_p50=('trip_distance', 'median'),
+        distance_mean=('trip_distance', 'mean'),
+    ))
 
     #======================================================
     # WEEKLY KPI
@@ -54,17 +65,39 @@ for f in clean_files:
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
-        speed_p50=('avg_speed', 'median')
+        speed_p50=('avg_speed', 'median'),
+
+        # PASSENGER
+        passenger_p50 = ( 'passenger_count' , 'median'),
+        passenger_mean = ( 'passenger_count' , 'mean'),
+        passenger_sum=('passenger_count', 'sum'),
+        
+        # DISTANCE
+        distance_p50=('trip_distance', 'median'),
+        distance_mean=('trip_distance', 'mean'),
+        distance_sum=('trip_distance', 'sum'),
+
+        
     ))
 
     # =====================================================
     #   MONTHLY KPI
     # =====================================================
     monthly_chunk.append(df.groupby('month').agg(
-    trips=('VendorID', 'count'),
-    duration_p50=('trip_duration', 'median'),
-    duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
-    speed_p50=('avg_speed', 'median')
+        trips=('VendorID', 'count'),
+        duration_p50=('trip_duration', 'median'),
+        duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
+        speed_p50=('avg_speed', 'median'),
+
+        # PASSENGER
+        passenger_p50 = ( 'passenger_count' , 'median'),
+        passenger_mean = ( 'passenger_count' , 'mean'),
+        passenger_sum=('passenger_count', 'sum'),
+
+        # DISTANCE
+        distance_sum=('trip_distance', 'sum'),
+        distance_p50=('trip_distance', 'median'),
+        distance_mean=('trip_distance', 'mean'),
     ))
 
 
