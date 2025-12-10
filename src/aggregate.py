@@ -51,139 +51,133 @@ for f in clean_files:
     # =====================================================
     #   DAILY KPI
     # =====================================================
-    daily_chunk_pickup.append(df_pickup.groupby(['date' , 'payment_type' , 'LocationID']).agg(
+    daily_chunk_pickup.append(
+    df_pickup.groupby(['date', 'payment_type', 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
-        duration_p95=('trip_duration', lambda x: x.quantile(0.95)), 
+        duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
         speed_p50=('avg_speed', 'median'),
 
-        # TOTAL AMOUNT
-        total_money = ('total_amount' , 'sum' , 'LocationID'),
+        total_money=('total_amount', 'sum'),
 
-        # PASSENGER
-        passenger_p50 = ( 'passenger_count' , 'median'),
-        passenger_mean = ( 'passenger_count' , 'mean'),
+        passenger_p50=('passenger_count', 'median'),
+        passenger_mean=('passenger_count', 'mean'),
         passenger_sum=('passenger_count', 'sum'),
-        
-        # DISTANCE 
+
         distance_sum=('trip_distance', 'sum'),
         distance_p50=('trip_distance', 'median'),
         distance_mean=('trip_distance', 'mean'),
-    ))
+    )
+    )
 
 
-    daily_chunk_dropoff.append(df_dropoff.groupby(['date' , 'payment_type', 'LocationID' ]).agg(
+
+    daily_chunk_dropoff.append(
+    df_dropoff.groupby(['date', 'payment_type', 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
-        duration_p95=('trip_duration', lambda x: x.quantile(0.95)), 
+        duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
         speed_p50=('avg_speed', 'median'),
 
-        # TOTAL AMOUNT
-        total_money = ('total_amount' , 'sum'),
+        total_money=('total_amount', 'sum'),
 
-        # PASSENGER
-        passenger_p50 = ( 'passenger_count' , 'median'),
-        passenger_mean = ( 'passenger_count' , 'mean'),
+        passenger_p50=('passenger_count', 'median'),
+        passenger_mean=('passenger_count', 'mean'),
         passenger_sum=('passenger_count', 'sum'),
-        
-        # DISTANCE 
+
         distance_sum=('trip_distance', 'sum'),
         distance_p50=('trip_distance', 'median'),
         distance_mean=('trip_distance', 'mean'),
-    ))
+    )
+    )
+
 
     #======================================================
     # WEEKLY KPI
     #======================================================
 
-    weekly_chunk_pickup.append(df_pickup.groupby(['week' , 'payment_type' , 'LocationID']).agg(
+    weekly_chunk_pickup.append(
+    df_pickup.groupby(['week', 'payment_type', 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
         speed_p50=('avg_speed', 'median'),
 
-        # TOTAL AMOUNT
-        total_money = ('total_amount' , 'sum'),
+        total_money=('total_amount', 'sum'),
 
-        # PASSENGER
-        passenger_p50 = ( 'passenger_count' , 'median'),
-        passenger_mean = ( 'passenger_count' , 'mean'),
+        passenger_p50=('passenger_count', 'median'),
+        passenger_mean=('passenger_count', 'mean'),
         passenger_sum=('passenger_count', 'sum'),
-        
-        # DISTANCE
+
         distance_p50=('trip_distance', 'median'),
         distance_mean=('trip_distance', 'mean'),
         distance_sum=('trip_distance', 'sum'),
+    )
+    )
 
-        
-    ))
 
-    weekly_chunk_dropoff.append(df_dropoff.groupby(['week' , 'payment_type' , 'LocationID']).agg(
+    weekly_chunk_dropoff.append(
+    df_dropoff.groupby(['week', 'payment_type', 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
         speed_p50=('avg_speed', 'median'),
 
-        # TOTAL AMOUNT
-        total_money = ('total_amount' , 'sum'),
+        total_money=('total_amount', 'sum'),
 
-        # PASSENGER
-        passenger_p50 = ( 'passenger_count' , 'median'),
-        passenger_mean = ( 'passenger_count' , 'mean'),
+        passenger_p50=('passenger_count', 'median'),
+        passenger_mean=('passenger_count', 'mean'),
         passenger_sum=('passenger_count', 'sum'),
-        
-        # DISTANCE
+
         distance_p50=('trip_distance', 'median'),
         distance_mean=('trip_distance', 'mean'),
         distance_sum=('trip_distance', 'sum'),
+    )
+    )
 
-        
-    ))
 
     # =====================================================
     #   MONTHLY KPI
     # =====================================================
-    monthly_chunk_pickup.append(df_pickup.groupby(['month' , 'payment_type' , 'LocationID']).agg(
+    monthly_chunk_pickup.append(
+    df_pickup.groupby(['month', 'payment_type', 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
         speed_p50=('avg_speed', 'median'),
 
+        total_money=('total_amount', 'sum'),
 
-        # TOTAL AMOUNT
-        total_money = ('total_amount' , 'sum'),
-
-        # PASSENGER
-        passenger_p50 = ( 'passenger_count' , 'median'),
-        passenger_mean = ( 'passenger_count' , 'mean'),
+        passenger_p50=('passenger_count', 'median'),
+        passenger_mean=('passenger_count', 'mean'),
         passenger_sum=('passenger_count', 'sum'),
 
-        # DISTANCE
         distance_sum=('trip_distance', 'sum'),
         distance_p50=('trip_distance', 'median'),
         distance_mean=('trip_distance', 'mean'),
-    ))
+    )
+    )
 
-    monthly_chunk_dropoff.append(df_dropoff.groupby(['month' , 'payment_type' , 'LocationID']).agg(
+
+    monthly_chunk_dropoff.append(
+    df_dropoff.groupby(['month', 'payment_type', 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
         speed_p50=('avg_speed', 'median'),
 
+        total_money=('total_amount', 'sum'),
 
-        # TOTAL AMOUNT
-        total_money = ('total_amount' , 'sum'),
-
-        # PASSENGER
-        passenger_p50 = ( 'passenger_count' , 'median'),
-        passenger_mean = ( 'passenger_count' , 'mean'),
+        passenger_p50=('passenger_count', 'median'),
+        passenger_mean=('passenger_count', 'mean'),
         passenger_sum=('passenger_count', 'sum'),
 
-        # DISTANCE
         distance_sum=('trip_distance', 'sum'),
         distance_p50=('trip_distance', 'median'),
         distance_mean=('trip_distance', 'mean'),
-    ))
+    )
+    )
+
 
 
     del df
