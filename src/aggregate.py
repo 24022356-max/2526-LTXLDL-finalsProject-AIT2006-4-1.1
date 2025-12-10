@@ -51,7 +51,7 @@ for f in clean_files:
     # =====================================================
     #   DAILY KPI
     # =====================================================
-    daily_chunk_pickup.append(df.groupby(['date' , 'payment_type' , 'LocationID']).agg(
+    daily_chunk_pickup.append(df_pickup.groupby(['date' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)), 
@@ -72,7 +72,7 @@ for f in clean_files:
     ))
 
 
-    daily_chunk_dropoff.append(df.groupby(['date' , 'payment_type', 'LocationID' ]).agg(
+    daily_chunk_dropoff.append(df_dropoff.groupby(['date' , 'payment_type', 'LocationID' ]).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)), 
@@ -96,7 +96,7 @@ for f in clean_files:
     # WEEKLY KPI
     #======================================================
 
-    weekly_chunk_pickup.append(df.groupby(['week' , 'payment_type' , 'LocationID']).agg(
+    weekly_chunk_pickup.append(df_pickup.groupby(['week' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
@@ -118,7 +118,7 @@ for f in clean_files:
         
     ))
 
-    weekly_chunk_dropoff.append(df.groupby(['week' , 'payment_type' , 'LocationID']).agg(
+    weekly_chunk_dropoff.append(df_dropoff.groupby(['week' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
@@ -143,7 +143,7 @@ for f in clean_files:
     # =====================================================
     #   MONTHLY KPI
     # =====================================================
-    monthly_chunk_pickup.append(df.groupby(['month' , 'payment_type' , 'LocationID']).agg(
+    monthly_chunk_pickup.append(df_pickup.groupby(['month' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
@@ -164,7 +164,7 @@ for f in clean_files:
         distance_mean=('trip_distance', 'mean'),
     ))
 
-    monthly_chunk_dropoff.append(df.groupby(['month' , 'payment_type' , 'LocationID']).agg(
+    monthly_chunk_dropoff.append(df_dropoff.groupby(['month' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
