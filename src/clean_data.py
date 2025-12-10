@@ -85,8 +85,8 @@ def apply_qa_rules(df, month_str):
     # Speed: < 70 mph
     df['qa_speed'] = (df['avg_speed'] >= 0) & (df['avg_speed'] <= 70) 
 
-    # Payment Type: 0 to 6
-    df['qa_payment_type'] = (df['payment_type'] >= 0) & (df['payment_type'] <= 6)
+    # Payment Type: 0 to 4
+    df['qa_payment_type'] = (df['payment_type'] >= 0) & (df['payment_type'] <= 4)
 
     # Total Amount: > $0 and < $1000 AND matches sum of components
     df['qa_total_amount'] = (df['total_amount'] > 0) & (df['total_amount'] < 1000)
