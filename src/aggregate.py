@@ -51,14 +51,14 @@ for f in clean_files:
     # =====================================================
     #   DAILY KPI
     # =====================================================
-    daily_chunk_pickup.append(df.groupby(['date' , 'payment_type' ]).agg(
+    daily_chunk_pickup.append(df.groupby(['date' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)), 
         speed_p50=('avg_speed', 'median'),
 
         # TOTAL AMOUNT
-        total_money = ('total_amount' , 'sum'),
+        total_money = ('total_amount' , 'sum' , 'LocationID'),
 
         # PASSENGER
         passenger_p50 = ( 'passenger_count' , 'median'),
@@ -72,7 +72,7 @@ for f in clean_files:
     ))
 
 
-    daily_chunk_dropoff.append(df.groupby(['date' , 'payment_type' ]).agg(
+    daily_chunk_dropoff.append(df.groupby(['date' , 'payment_type', 'LocationID' ]).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)), 
@@ -96,7 +96,7 @@ for f in clean_files:
     # WEEKLY KPI
     #======================================================
 
-    weekly_chunk_pickup.append(df.groupby(['week' , 'payment_type']).agg(
+    weekly_chunk_pickup.append(df.groupby(['week' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
@@ -118,7 +118,7 @@ for f in clean_files:
         
     ))
 
-    weekly_chunk_dropoff.append(df.groupby(['week' , 'payment_type']).agg(
+    weekly_chunk_dropoff.append(df.groupby(['week' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
@@ -143,7 +143,7 @@ for f in clean_files:
     # =====================================================
     #   MONTHLY KPI
     # =====================================================
-    monthly_chunk_pickup.append(df.groupby(['month' , 'payment_type']).agg(
+    monthly_chunk_pickup.append(df.groupby(['month' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
@@ -164,7 +164,7 @@ for f in clean_files:
         distance_mean=('trip_distance', 'mean'),
     ))
 
-    monthly_chunk_dropoff.append(df.groupby(['month' , 'payment_type']).agg(
+    monthly_chunk_dropoff.append(df.groupby(['month' , 'payment_type' , 'LocationID']).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
@@ -214,8 +214,8 @@ kpi_monthly_dropoff["pct_of_year"] = 100 * kpi_monthly_dropoff["trips"] / kpi_mo
 # =====================================================
 #   SAVE OUTPUTS
 # =====================================================
-daily_pu_path = os.path.join(OUTPUT_FOLDER, f"kpi_daily_pickup{YEAR}.csv")
-daily_do_path = os.path.join(OUTPUT_FOLDER, f"kpi_daily_dropoff{YEAR}.csv")
+daily_pu_path  = os.path.join(OUTPUT_FOLDER, f"kpi_daily_pickup{YEAR}.csv")
+daily_do_path  = os.path.join(OUTPUT_FOLDER, f"kpi_daily_dropoff{YEAR}.csv")
 weekly_pu_path = os.path.join(OUTPUT_FOLDER, f"kpi_weekly_pickup_{YEAR}.csv")
 weekly_do_path = os.path.join(OUTPUT_FOLDER, f"kpi_weekly_dropoff_{YEAR}.csv")
 monthly_pu_path = os.path.join(OUTPUT_FOLDER, f"kpi_monthly_pickup{YEAR}.csv")
