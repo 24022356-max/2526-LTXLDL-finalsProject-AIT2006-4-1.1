@@ -3,7 +3,6 @@ import numpy as np
 import glob
 import os
 import gc
-from tqdm import tqdm
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -137,22 +136,20 @@ def apply_qa_rules(df, month_str):
 # --- MAIN ---
 raw_files = sorted(glob.glob(os.path.join(input_folder, 'yellow_tripdata_2019-*.parquet')))
 
-for file in tqdm(raw_files, desc="Processing Files"):
-    try:
-        cleaned_df = process_month(file)
-        
-        if cleaned_df is not None and not cleaned_df.empty:
-            output_name = os.path.basename(file)
-            save_path = os.path.join(output_folder, f"clean_{output_name}")
-            cleaned_df.to_parquet(save_path, index=False)
-        else:
-            print(f"\n{file}: No data")
+for file in raw_files:
+    print(f'Processing: {os.path.basename(file)}')
 
-        del cleaned_df
-        gc.collect()
+    clean_df = process_month(file)
+    
+    if clean_df is not None and not clean_df.empty:
+        output_name = os.path.basename(file)
+        save_path = os.path.join(output_folder, f'clean_{output_name}')
+        clean_df.to_parquet(save_path, index=False)
+    else:
+        print(f'\n{file}: No data')
 
-    except Exception as e:
-        print(f"\nFailed on {file}: {e}")
+    del clean_df
+    gc.collect()
 
 # --- SAVE REPORT ---
 if all_qa_stats:
