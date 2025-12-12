@@ -19,6 +19,7 @@ YEAR = 2019
 clean_files = sorted(glob.glob(os.path.join(INPUT_FOLDER, f'clean_yellow_tripdata_{YEAR}-*.parquet')))
 
 chunks = {
+    'hourly': [],
     'daily': [],
     'weekly': [],
     'monthly': [],
@@ -34,14 +35,14 @@ if not clean_files:
 # ------------------------------
 # AGGREGATE LOGIC
 # ------------------------------
-def apply_agg(df):
-    return df.agg(
+def apply_agg(df, group_cols):
+    return df.groupby(group_cols).agg(
         trips=('VendorID', 'count'),
         duration_p50=('trip_duration', 'median'),
         duration_p95=('trip_duration', lambda x: x.quantile(0.95)),
         speed_p50=('avg_speed', 'median'),
+        speed_mean=('avg_speed', 'mean'),
         total_money=('total_amount', 'sum'),
-        passenger_p50=('passenger_count', 'median'),
         passenger_mean=('passenger_count', 'mean'),
         passenger_sum=('passenger_count', 'sum'),
         distance_sum=('trip_distance', 'sum'),
@@ -57,25 +58,22 @@ for f in clean_files:
     df['year'] = df['tpep_pickup_datetime'].dt.year
     df['month'] = df['tpep_pickup_datetime'].dt.to_period('M')
     df['week_start'] = df['tpep_pickup_datetime'].dt.to_period('W').dt.start_time
-
-    base_col = ['date', 'month', 'year', 'week_start',
-                'VendorID', 'payment_type', 'PULocationID', 'DOLocationID',
-                'passenger_count', 'trip_distance', 'total_amount', 
-                'avg_speed', 'trip_duration']
-    df_base = df[base_col].copy()
+    df['dow']  = df['tpep_pickup_datetime'].dt.dayofweek # 0=Monday, 6=Sunday
+    df['hour'] = df['tpep_pickup_datetime'].dt.hour # 0 to 23
     
     # =====================================================
     #  KPI
     # =====================================================
-    chunks['daily'].append(apply_agg(df.groupby(['date'])))
-    chunks['weekly'].append(apply_agg(df.groupby('week_start')))
-    chunks['monthly'].append(apply_agg(df.groupby(['month'])))
+    chunks['hourly'].append(apply_agg(df, ['dow', 'hour']))
+    chunks['daily'].append(apply_agg(df, ['date']))
+    chunks['weekly'].append(apply_agg(df, ['week_start']))
+    chunks['monthly'].append(apply_agg(df, ['month']))
     
-    chunks['monthly_pickup'].append(apply_agg(df.groupby(['month', 'PULocationID'])))
-    chunks['monthly_dropoff'].append(apply_agg(df.groupby(['month', 'DOLocationID'])))
-    chunks['monthly_payment_type'].append(apply_agg(df.groupby(['month', 'payment_type'])))
+    chunks['monthly_pickup'].append(apply_agg(df, ['month', 'PULocationID']))
+    chunks['monthly_dropoff'].append(apply_agg(df, ['month', 'DOLocationID']))
+    chunks['monthly_payment_type'].append(apply_agg(df, ['month', 'payment_type']))
 
-    del df, df_base
+    del df
     gc.collect()
 
 
@@ -83,18 +81,24 @@ for f in clean_files:
 #   CHUNK MERGE
 #-------------------------------
 
-kpi_daily = pd.concat(chunks['daily']).reset_index()
-kpi_monthly = pd.concat(chunks['monthly']).reset_index()
+kpi = {
+    'hourly': pd.DataFrame(),
+    'daily': pd.DataFrame(),
+    'weekly': pd.DataFrame(),
+    'monthly': pd.DataFrame(),
+    'monthly_pickup': pd.DataFrame(),
+    'monthly_dropoff': pd.DataFrame(),
+    'monthly_payment_type': pd.DataFrame()
+}
 
-kpi_monthly_pickup = pd.concat(chunks['monthly_pickup']).reset_index()
-kpi_monthly_dropoff = pd.concat(chunks['monthly_dropoff']).reset_index()
-kpi_monthly_payment_type = pd.concat(chunks['monthly_payment_type']).reset_index()
+for key in kpi:
+    kpi[key] = pd.concat(chunks[key]).reset_index()
 
 # ------------------------------
 # Fix duplicate rows in weekly
 # ------------------------------
 
-kpi_weekly = (pd.concat(chunks['weekly']).reset_index()).groupby('week_start').agg(
+kpi['weekly'] = kpi['weekly'].groupby('week_start').agg(
     trips=('trips', 'sum'),
     total_money=('total_money', 'sum'),
     passenger_sum=('passenger_sum', 'sum'),
@@ -102,17 +106,35 @@ kpi_weekly = (pd.concat(chunks['weekly']).reset_index()).groupby('week_start').a
     duration_p50=('duration_p50', 'mean'), 
     duration_p95=('duration_p95', 'mean'),
     speed_p50=('speed_p50', 'mean'),
-    passenger_p50=('passenger_p50', 'mean'),
+    speed_mean=('speed_mean', 'mean'),
     distance_p50=('distance_p50', 'mean'),
 ).reset_index()
-kpi_weekly['passenger_mean'] = kpi_weekly['passenger_sum'] / kpi_weekly['trips']
-kpi_weekly['distance_mean'] = kpi_weekly['distance_sum'] / kpi_weekly['trips']
-kpi_weekly = kpi_weekly.sort_values('week_start')
+
+kpi['weekly'] = kpi['weekly'].sort_values('week_start')
+
+# ------------------------------
+# Merge Hourly
+# ------------------------------
+kpi['hourly'] = kpi['hourly'].groupby(['dow', 'hour']).agg(
+    trips=('trips', 'sum'),
+    total_money=('total_money', 'sum'),
+    passenger_sum=('passenger_sum', 'sum'),
+    distance_sum=('distance_sum', 'sum'),
+    duration_p50=('duration_p50', 'mean'), 
+    duration_p95=('duration_p95', 'mean'),
+    speed_p50=('speed_p50', 'mean'),
+    speed_mean=('speed_mean', 'mean'),
+    distance_p50=('distance_p50', 'mean'),
+).reset_index()
+
+dow_map = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'}
+kpi['hourly']['day'] = kpi['hourly']['dow'].map(dow_map)
 
 # =====================================================
 #   COMPUTE PERCENTAGE AND SAVE OUTPUTS
 # =====================================================
 output_path = {
+    'hourly': f'kpi_hourly_{YEAR}.csv',
     'daily': f'kpi_daily_{YEAR}.csv',
     'weekly': f'kpi_weekly_{YEAR}.csv',
     'monthly': f'kpi_monthly_{YEAR}.csv',
@@ -121,16 +143,12 @@ output_path = {
     'monthly_payment_type': f'kpi_monthly_payment_type_{YEAR}.csv'
 }
 
-temp_monthly = pd.concat(chunks['monthly'])
-total_trips_year = temp_monthly['trips'].sum()
-total_money_year = temp_monthly['total_money'].sum()
+total_trips_year = kpi['monthly']['trips'].sum()
+total_money_year = kpi['monthly']['total_money'].sum()
 
 for key, filename in output_path.items():
-    df_final = pd.concat(chunks[key]).reset_index()
-    
-    # Calculate Percentages
-    df_final['trip_pct'] = (df_final['trips'] / total_trips_year) * 100
-    df_final['money_pct'] = (df_final['total_money'] / total_money_year) * 100
+    kpi[key]['trip_pct'] = (kpi[key]['trips'] / total_trips_year) * 100
+    kpi[key]['money_pct'] = (kpi[key]['total_money'] / total_money_year) * 100
 
-    df_final.to_csv(os.path.join(OUTPUT_FOLDER, filename), index=False)
+    kpi[key].to_csv(os.path.join(OUTPUT_FOLDER, filename), index=False)
     print(f"Saved: {filename}")
