@@ -2,7 +2,7 @@
 
 **Course**: AIT2006
 \
-**Group**: AIT2006-4-1.11
+**Group**: AIT2006-4-1.1
 \
 **Members**: Ta Manh Cuong, Nguyen Minh Huy, Nguyen Viet Hung
 
