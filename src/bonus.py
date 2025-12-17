@@ -44,7 +44,7 @@ baseline_future = np.tile(last_week.values, (FORECAST_DAYS //7) + 1 )[:FORECAST_
 # ============ LINEAR REGRESSION FORCAST ==========#
 features = pd.DataFrame(index = data.index)
 features['dayofweek'] = features.index.dayofweek.astype('int8')
-features['month']  = features.inndex.month.astype('int8')
+features['month']  = features.index.month.astype('int8')
 features['lag_7'] = data['trips'].shift(7)
 features['lag_30'] = data['trips'].shift(30)
 features['rolling_7'] = data['trips'].shift(1).rolling(7).mean()
@@ -54,6 +54,7 @@ Y_train = data.loc[X_train.index , 'trips']
 
 
 #  Trainn model
+
 
 lr_model = LinearRegression(n_jobs= -1)
 lr_model.fit(X_train , Y_train)
@@ -67,7 +68,15 @@ future_features['lag_7'] = data['trips'].iloc[-7:].values
 future_features['lag_30'] = data['trips'].iloc[-30:].values
 future_features['rolling_7'] = data['trips'].iloc[-7:].mean()
 
+
+lag_7_values = data['trips'].iloc[-7:].values
+future_features['lag_7'] = np.tile(lag_7_values, (FORECAST_DAYS // 7) + 1)[:FORECAST_DAYS]
+
+lag_30_values = data['trips'].iloc[-30:].values
+future_features['lag_30'] = np.tile(lag_30_values, (FORECAST_DAYS // 30) + 1)[:FORECAST_DAYS]
+
 # Predict
+future_features['rolling_7'] = data['trips'].iloc[-7:].mean()
 lr_future = lr_model.predict(future_features)
 lr_future = np.maximum(lr_future, 0).astype('int32')
 
