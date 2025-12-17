@@ -20,7 +20,7 @@ REPORTS_PATH = 'reports'
 # =============== LOAD DATA =============#
 def load_kpi_daily(year=YEAR, folder=DATA_PATH):
     file_path = os.path.join(folder, f'kpi_daily_{year}.csv')
-    print(f"📂 Loading: {file_path}")
+    print(f" Loading: {file_path}")
     
     df = pd.read_csv(
         file_path,
@@ -29,12 +29,11 @@ def load_kpi_daily(year=YEAR, folder=DATA_PATH):
         index_col='date'
     )
     df = df.asfreq('D')
-    print(f"✅ Loaded: {len(df)} days")
+    print(f" Loaded: {len(df)} days")
     return df
 
 ### DATA LOADING ###
 data = load_kpi_daily()
-
 
 # ============= BASELINE FORECAST ============#
 last_week = data['trips'].iloc[-7:]
@@ -75,7 +74,7 @@ lr_future = np.maximum(lr_future, 0).astype('int32')
 
 
 # =============== ARIMA FORECAST =============#
-print("\n🤖 Training ARIMA...")
+print("\Training ARIMA...")
 arima_train = data['trips'].iloc[-200:]  # Dùng 200 điểm cuối
 arima_model = SARIMAX(arima_train, order=(2, 1, 2), low_memory=True)
 arima_fitted = arima_model.fit(disp=False, low_memory=True)
