@@ -1,4 +1,3 @@
-
 import pandas as pd
 import numpy as np
 import glob
@@ -25,7 +24,8 @@ chunks = {
     'monthly': [],
     'monthly_pickup': [],
     'monthly_dropoff': [],
-    'monthly_payment_type': []
+    'monthly_payment_type': [],
+    'hourly_timeseries': []
 }
 
 
@@ -51,6 +51,14 @@ def apply_agg(df, group_cols):
         distance_mean=('trip_distance', 'mean'),
     )
 
+def apply_agg_bonus(df):
+    return df.groupby(['date', 'hour']).agg(
+        trips=('VendorID', 'count'),
+        speed_mean=('avg_speed', 'mean'),
+        total_money=('total_amount', 'sum'),
+        distance_sum=('trip_distance', 'sum')
+    )
+
 for f in clean_files:
     print(f'Processing: {os.path.basename(f)}')
     df = pd.read_parquet(f)
@@ -73,6 +81,7 @@ for f in clean_files:
     chunks['monthly_pickup'].append(apply_agg(df, ['month', 'PULocationID']))
     chunks['monthly_dropoff'].append(apply_agg(df, ['month', 'DOLocationID']))
     chunks['monthly_payment_type'].append(apply_agg(df, ['month', 'payment_type']))
+    chunks['hourly_timeseries'].append(apply_agg_bonus(df))
 
     del df
     gc.collect()
@@ -133,6 +142,16 @@ kpi['hourly'] = kpi['hourly'].groupby(['dow', 'hour']).agg(
 dow_map = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'}
 kpi['hourly']['day'] = kpi['hourly']['dow'].map(dow_map)
 
+# New merge
+bonus_df = pd.concat(chunks['hourly_timeseries']).reset_index()
+bonus_final = bonus_df.groupby(['date', 'hour']).agg(
+    trips=('trips', 'sum'),
+    speed_mean=('speed_mean', 'mean'),
+    total_money=('total_money', 'sum'),
+    distance_sum=('distance_sum', 'sum')
+).reset_index()
+
+
 # =====================================================
 #   COMPUTE PERCENTAGE AND SAVE OUTPUTS
 # =====================================================
@@ -155,3 +174,8 @@ for key, filename in output_path.items():
 
     kpi[key].to_csv(os.path.join(OUTPUT_FOLDER, filename), index=False)
     print(f"Saved: {filename}")
+
+
+# kpi bonus
+bonus_output_path = os.path.join(OUTPUT_FOLDER, f'kpi_hourly_timeseries_{YEAR}.csv')
+bonus_final.to_csv(bonus_output_path, index=False)
