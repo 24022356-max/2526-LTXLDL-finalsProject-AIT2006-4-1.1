@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from pandas.tseries.holiday import USFederalHolidayCalendar
 import os
 import warnings
 warnings.filterwarnings('ignore')
@@ -10,7 +11,7 @@ warnings.filterwarnings('ignore')
 DATA_PATH = 'processed'
 REPORTS_PATH = 'reports'
 YEAR = 2019
-FORECAST_DAYS = 30
+FORECAST_DAYS = 60
 
 os.makedirs(REPORTS_PATH, exist_ok=True)
 
@@ -33,51 +34,112 @@ data = load_kpi_daily()
 
 # ============= BASELINE FORECAST ============#
 print("\nCalculating Baseline...")
-last_week = data['trips'].iloc[-7:]
-baseline_future = np.tile(last_week.values, (FORECAST_DAYS // 7) + 1)[:FORECAST_DAYS]
+last_year = data['trips'].iloc[-365:]
+baseline_future = np.tile(last_year.values, (FORECAST_DAYS // 365) + 1)[:FORECAST_DAYS]
 
 # ========== LINEAR REGRESSION FORECAST =======#
 print("\nCalculating Linear Regression...")
-features = pd.DataFrame(index=data.index)
-features['dayofweek'] = features.index.dayofweek.astype('int8')
-features['month'] = features.index.month.astype('int8')
-features['lag_7'] = data['trips'].shift(7)
-features['lag_30'] = data['trips'].shift(30)
-features['rolling_7'] = data['trips'].shift(1).rolling(7).mean()
+def get_calendar_features(date):
+    day_num = date.dayofweek
+    month_num = date.month
+    
+    feats = {'is_holiday': 0} # Default, updated later
+    
+    # One-Hot Day of Week
+    for d in range(7):
+        feats[f'day_{d}'] = 1 if day_num == d else 0
+        
+    # One-Hot Month
+    for m in range(1, 13):
+        feats[f'month_{m}'] = 1 if month_num == m else 0
+        
+    return feats
 
-X_train = features.dropna()
-y_train = data.loc[X_train.index, 'trips']
+# Fill missing data to prevent crashes
+data = data.asfreq('D').fillna(method='ffill')
+start_date = data.index[0] # Still needed for the 'days_from_start' calculation below
 
-lr_model = LinearRegression(n_jobs=-1)
-lr_model.fit(X_train, y_train)
+train_rows = []
+for date in data.index:
+    row = get_calendar_features(date)
+    
+    # Lag 7: If we are in the first week (Jan 1-7), we "borrow" data from Dec 25-31
+    days_from_start = (date - start_date).days
+    
+    if days_from_start < 7:
+        lag_value = data['trips'].iloc[-(7 - days_from_start)]
+        row['lag_7'] = lag_value
+    else:
+        row['lag_7'] = data.loc[date - pd.Timedelta(days=7), 'trips']
+    
+    row['target'] = data.loc[date, 'trips']
+    train_rows.append(row)
 
-# ============== CREATE FUTURE FEATURES =============#
-future_dates = pd.date_range(data.index[-1] + pd.Timedelta(days=1), periods=FORECAST_DAYS)
-future_features = pd.DataFrame(index=future_dates)
-future_features['dayofweek'] = future_features.index.dayofweek.astype('int8')
-future_features['month'] = future_features.index.month.astype('int8')
+train_df = pd.DataFrame(train_rows)
 
-# ✅ FIX LENGTH MISMATCH - Tile lag patterns
-lag_7_values = data['trips'].iloc[-7:].values
-future_features['lag_7'] = np.tile(lag_7_values, (FORECAST_DAYS // 7) + 1)[:FORECAST_DAYS]
+# Holidays
+cal = USFederalHolidayCalendar()
+holidays = cal.holidays(start=data.index.min(), end=data.index.max())
+train_df['is_holiday'] = data.index.isin(holidays).astype(int)
 
-lag_30_values = data['trips'].iloc[-30:].values
-future_features['lag_30'] = np.tile(lag_30_values, (FORECAST_DAYS // 30) + 1)[:FORECAST_DAYS]
+# Train
+X_train = train_df.drop(columns=['target'])
+y_train = train_df['target']
 
-# Rolling mean is a single value, pandas will broadcast it
-future_features['rolling_7'] = data['trips'].iloc[-7:].mean()
+model = LinearRegression()
+model.fit(X_train, y_train)
 
-# Predict
-lr_future = lr_model.predict(future_features)
-lr_future = np.maximum(lr_future, 0).astype('int32')
+# Forecast
+history = data['trips'].tolist()
+future_predictions = []
+current_date = data.index[-1] + pd.Timedelta(days=1)
+
+for i in range(FORECAST_DAYS):
+    feat_dict = get_calendar_features(current_date)
+    feat_dict['is_holiday'] = 1 if current_date in cal.holidays() else 0
+    feat_dict['lag_7'] = history[-7]
+    
+    this_day_X = pd.DataFrame([feat_dict])
+    this_day_X = this_day_X[X_train.columns] 
+    
+    pred = model.predict(this_day_X)[0]
+    
+    future_predictions.append(pred)
+    history.append(pred)
+    current_date += pd.Timedelta(days=1)
+
+# Save results
+future_dates=pd.date_range(data.index[-1] + pd.Timedelta(days=1), periods=FORECAST_DAYS)
+results = pd.DataFrame({
+    'Date': future_dates, 
+    'Forecast': future_predictions
+})
 
 # =============== ARIMA FORECAST =============#
 print("\nTraining ARIMA...")
-arima_train = data['trips'].iloc[-200:]
-arima_model = SARIMAX(arima_train, order=(2, 1, 2), low_memory=True)
-arima_fitted = arima_model.fit(disp=False, low_memory=True)
-arima_future = arima_fitted.forecast(steps=FORECAST_DAYS)
-arima_future = np.maximum(arima_future, 0).astype('int32')
+
+def create_exog(dates):
+    exog = pd.DataFrame(index=dates)
+    # Holidays are the ONLY external thing we need
+    cal = USFederalHolidayCalendar()
+    holidays = cal.holidays(start=dates.min(), end=dates.max())
+    exog['is_holiday'] = exog.index.isin(holidays).astype(int)
+    return exog
+y_train_log = np.log(data['trips'])
+exog_train = create_exog(data.index)
+exog_future = create_exog(future_dates)
+
+arima_model = SARIMAX(
+    y_train_log,
+    exog=exog_train,
+    order=(2, 1, 1),              
+    seasonal_order=(1, 0, 1, 7)
+)
+
+fitted = arima_model.fit(disp=False)
+
+arima_log = fitted.forecast(steps=FORECAST_DAYS, exog=exog_future)
+arima_future = np.exp(arima_log + 0.25 * fitted.mse)
 
 # ============= SAVE RESULTS =============#
 print("\nSaving predictions...")
@@ -85,18 +147,16 @@ print("\nSaving predictions...")
 results = pd.DataFrame({
     'Date': future_dates,
     'Baseline': baseline_future,
-    'Linear_Reg': lr_future,
+    'Linear_Reg': future_predictions,
     'ARIMA': arima_future
 })
 
 # Save to reports folder
-results.to_csv(f'{REPORTS_PATH}/forecast_results_{YEAR}.csv', index=False)
+results.to_csv(f'{REPORTS_PATH}/forecast_results_{YEAR + 1}.csv', index=False)
 
 historical = data[['trips']].copy()
 historical.columns = ['Historical']
 historical.index.name = 'date'
 historical.to_csv(f'{REPORTS_PATH}/historical_data_{YEAR}.csv')
 
-print(f"Saved: {REPORTS_PATH}/forecast_results_{YEAR}.csv")
-print(f"Saved: {REPORTS_PATH}/historical_data_{YEAR}.csv")
 print("\nDone!")
