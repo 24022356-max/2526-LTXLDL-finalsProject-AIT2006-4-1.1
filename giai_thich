@@ -1,0 +1,6 @@
+Sử dụng Z-score theo ngữ cảnh (Contextual Z-score), so sánh khung giờ của 1 ngày cụ thể với trung bình khung giờ đó các ngày khác (8h sáng hnay với tbinh 8h sáng ca nam).
+groups = df.groupby(['dow', 'hour']): chia dữ liệu năm thành 24x7 cột 
+công thức tính zscore: Z = (x - mean) / độ lệch chuẩn
+chọn ngưỡng chặn = 3 ≈ lọc ra 0,3% th đặc biệt
+
+
