@@ -26,7 +26,6 @@ Data cleaning, validation, and exploratory analysis were conducted using Python,
 
 - Python 3.10 or higher
 - Git
-- Virtual environment **(Recommended)**
 
 ### 2. Repository Setup:
 - Clone the repository:
@@ -66,6 +65,7 @@ The raw data is obtained from the [NYC TLC Trip Record Data repository](https://
 
 Download these files and store them in the `raw/` directory:
 - **Trip Records**: 12 Yellow Taxi Parquet files for **2019** (e.g., `yellow_tripdata_2019-01.parquet`).
+- **Trip Records (2020)**: January & February (for model evaluation).
 - **Taxi Zone Lookup Table**
 
 ### 2. Data Preprocessing and Aggregation:
@@ -89,6 +89,31 @@ To reproduce or modify the visualizations, rerun the cells in the `visualize.ipy
 
    ```bash
    python -m notebook src/visualize.ipynb
+   ```
+
+### 4. Modelling:
+
+#### a. Predictive Model:
+
+Generate predictions for January and February 2020:
+
+   ```bash
+   python src/bonus_PredictiveModel.py
+   ```
+
+Compute performance metrics **(requires January and February 2020 data)**
+
+   ```bash
+   python src/cal_model_metric.py
+   ```
+A pre-generated file is available at `reports/model_performance_metrics.csv`
+
+#### b. Anomaly Detection:
+
+Detect anomalies in Taxi activity:
+
+   ```bash
+   python src/bonus_AnomalyDetection.py
    ```
 
 ## Key Findings
