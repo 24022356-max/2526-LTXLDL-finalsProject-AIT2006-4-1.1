@@ -6,3 +6,5 @@ seaborn==0.13.2
 jupyter
 notebook
 ipykernel
+scikit_learn==1.8.0
+statsmodels==0.14.6
